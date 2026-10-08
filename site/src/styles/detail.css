@@ -77,11 +77,12 @@
   .question-main { gap: 9px; }
   .question-number { width: 31px; height: 31px; font-size: 12px; }
   .question-main-body { padding-top: 2px; }
-  /* 复制按钮保持在问题右上角（与桌面同一 flex 行），单按钮不换行 */
+  /* 复制按钮保持在问题右上角（与桌面同一 flex 行）；按钮收紧以少占宽度 */
   .question-heading h4 { font-size: 15px; line-height: 1.75; }
   .question-text { font-size: 15px; line-height: 1.85; }
-  .copy-actions { margin: 0; }
-  .copy-button { min-height: 44px; font-size: 12px; padding: 8px 10px; }
+  .copy-actions { gap: 5px; margin: 0; }
+  .copy-button { min-height: 30px; font-size: 11px; padding: 3px 8px; }
+  .copy-button svg { width: 12px; height: 12px; }
   .follow-ups { padding-left: 10px; gap: 12px; }
   .follow-ups li { display: block; }
   .follow-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
