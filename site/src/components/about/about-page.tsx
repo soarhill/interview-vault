@@ -16,11 +16,7 @@ import { GithubIcon } from "../shared/github-icon";
 import { CopyButton } from "../detail/copy-button";
 import { CopyProvider } from "@/hooks/use-copy";
 import { useLibrary } from "@/hooks/use-library";
-import {
-  SUBMISSION_EMAIL,
-  SUBMISSION_MAILTO,
-  SUBMISSION_TEMPLATE,
-} from "@/lib/submission";
+import { SUBMISSION_EMAIL, SUBMISSION_TEMPLATE } from "@/lib/submission";
 import styles from "./about.module.css";
 
 export function AboutPage() {
@@ -82,9 +78,6 @@ export function AboutPage() {
                       label="复制投稿模板"
                       accessibleLabel="复制投稿模板"
                     />
-                    <a className={styles.textLink} href={SUBMISSION_MAILTO}>
-                      直接写邮件 <ArrowUpRight size={16} aria-hidden="true" />
-                    </a>
                   </div>
                   <p className={styles.featureMail}>
                     投稿邮箱：{SUBMISSION_EMAIL}（邮件里粘贴模板填写即可）
@@ -121,14 +114,13 @@ export function AboutPage() {
               <h2 id="about-participate" className={styles.sectionTitle}>一起把它做得更好</h2>
             </div>
             <div className={styles.actions}>
-              <a className={styles.actionRow} href={SUBMISSION_MAILTO}>
+              <div className={styles.actionRow}>
                 <span className={styles.actionIcon}><Mail size={22} strokeWidth={1.7} aria-hidden="true" /></span>
                 <span className={styles.actionCopy}>
                   <span className={styles.actionTitle}>投稿面经 <span className={styles.actionDestination}>邮箱投稿</span></span>
                   <span className={styles.actionDescription}>把你的面试经历发到 {SUBMISSION_EMAIL}，整理审核后会在这里发布。</span>
                 </span>
-                <ArrowUpRight className={styles.actionArrow} size={20} aria-hidden="true" />
-              </a>
+              </div>
               <a className={styles.actionRow} href={REPO_URL} target="_blank" rel="noopener noreferrer">
                 <span className={styles.actionIcon}><GithubIcon size={22} /></span>
                 <span className={styles.actionCopy}>

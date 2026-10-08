@@ -125,8 +125,9 @@
 .actionDestination { font-size: 12px; color: var(--color-muted); font-weight: 400; }
 .actionDescription { display: block; margin-top: 3px; font-size: 14px; line-height: 1.8; color: var(--color-secondary-foreground); }
 .actionArrow { color: var(--color-muted); }
-.actionRow:hover .actionTitle, .actionRow:hover .actionArrow { color: var(--color-primary); }
-.actionRow:hover .actionIcon { background: var(--color-soft-blue); color: var(--color-primary); }
+/* 悬停变色只用于真正的链接行；静态信息行（如邮箱投稿）不暗示可点 */
+a.actionRow:hover .actionTitle, a.actionRow:hover .actionArrow { color: var(--color-primary); }
+a.actionRow:hover .actionIcon { background: var(--color-soft-blue); color: var(--color-primary); }
 
 .dataNote { border-bottom: 1px solid var(--color-line); padding-bottom: 18px; }
 .dataNote p { margin: 12px 0 0; font-size: 14px; line-height: 1.85; color: var(--color-secondary-foreground); }
