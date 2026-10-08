@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { REPO_URL } from "./brand";
 
-const COUNTER_SCRIPT_ID = "vercount-script";
-const COUNTER_SCRIPT_SRC = "https://events.vercount.one/js";
+const COUNTER_SCRIPT_ID = "busuanzi-script";
+// 不蒜子（与参考站同款）：PV 每次页面加载都 +1，无长期访客 cookie。
+const COUNTER_SCRIPT_SRC = "https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
 const CACHE_KEY = "interview-vault:site-pv:v1";
 
 function readCachedCount(): string {
@@ -15,11 +16,9 @@ function readCachedCount(): string {
 }
 
 /**
- * 站点累计访问计数（VerCount 公共服务，无需注册）。
- * 脚本必须在计数 span 已挂载后注入：vercount 启动时一次性缓存元素引用，
- * 找不到就不再重试；SPA 里 React 晚于 head 脚本挂载，所以由页脚负责注入。
- * 脚本每次页面加载只回填当时挂载的那个页脚，站内路由切换后的页脚
- * 用 localStorage 缓存值展示。服务不可达时计数段保持隐藏。
+ * 页脚「累计访问」计数：脚本在页脚挂载后注入（计数 span 必须先于脚本存在），
+ * 每次页面加载（含刷新）都会 +1。站内路由切换不重复计数，页脚用
+ * localStorage 缓存值展示；服务不可达时计数段保持隐藏。
  */
 function useVisitCounter(): boolean {
   const [counted, setCounted] = useState(() => readCachedCount() !== "");
@@ -28,13 +27,14 @@ function useVisitCounter(): boolean {
       const script = document.createElement("script");
       script.id = COUNTER_SCRIPT_ID;
       script.src = COUNTER_SCRIPT_SRC;
+      script.async = true;
       document.body.appendChild(script);
     }
     let tries = 0;
     const timer = window.setInterval(() => {
       tries += 1;
       const value = document
-        .getElementById("vercount_value_site_pv")
+        .getElementById("busuanzi_value_site_pv")
         ?.textContent?.trim();
       if (value && value !== "Loading" && value !== "0") {
         try {
@@ -68,7 +68,7 @@ export function SiteFooter({ generatedAt }: { generatedAt?: string }) {
           <span className="visit-counter">
             累计访问{" "}
             <strong>
-              <span id="vercount_value_site_pv">{cached || "Loading"}</span>
+              <span id="busuanzi_value_site_pv">{cached || "Loading"}</span>
             </strong>{" "}
             次
           </span>
