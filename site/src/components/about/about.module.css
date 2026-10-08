@@ -137,26 +137,6 @@ a.actionRow:hover .actionIcon { background: var(--color-soft-blue); color: var(-
 .footer > span a { text-decoration: underline; text-underline-offset: 3px; }
 .footer a:hover { color: var(--color-primary); }
 
-@media (max-width: 767px) {
-  .layout :global(.site-header-inner) {
-    position: relative;
-    display: grid;
-    grid-template-rows: 56px 44px;
-    align-items: center;
-    padding: 0 20px;
-  }
-
-  .layout :global(.brand) { justify-self: start; }
-  .layout :global(.site-navigation) { width: 100%; min-width: 0; gap: 20px; }
-  .layout :global(.site-navigation) > a { white-space: nowrap; flex-shrink: 0; font-size: 12px; }
-  .layout :global(.about-trigger) { padding: 0; }
-}
-
-@media (max-width: 399px) {
-  .layout :global(.site-navigation) { gap: 12px; }
-  .layout :global(.brand) { gap: 8px; font-size: 16px; }
-}
-
 @media (max-width: 639px) {
   .page { padding: 34px 22px 20px; }
   .hero h1 { letter-spacing: -.8px; }
