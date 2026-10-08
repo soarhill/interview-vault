@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/interview-vault/icon.svg" />
+    <title>页面不存在｜面个 Offer</title>
+    <style>
+      body { margin: 0; background: #f6f8fc; color: #14213b; font-family: "Inter", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; }
+      main { max-width: 480px; margin: 18vh auto 0; padding: 0 20px; text-align: center; }
+      .brand { color: #1763ee; font-weight: 700; font-size: 18px; text-decoration: none; }
+      .card { margin-top: 22px; padding: 46px 24px; background: #fff; border: 1px solid #e5ebf3; border-radius: 12px; box-shadow: 0 2px 8px #14213b03; }
+      h1 { font-size: 18px; margin: 0 0 10px; }
+      p { color: #66738b; font-size: 14px; margin: 0 0 22px; }
+      a.button { display: inline-block; padding: 10px 20px; background: #1763ee; color: #fff; border-radius: 8px; font-weight: 600; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="brand" href="/interview-vault/">面个 Offer</a>
+      <div class="card">
+        <h1>页面不存在</h1>
+        <p>这个地址没有对应的内容，回到面经列表继续浏览吧。</p>
+        <a class="button" href="/interview-vault/">返回列表</a>
+      </div>
+    </main>
+    <script>
+      // GitHub Pages 自定义 404：仅服务错误路径；站内路由是 hash 路由，不会走到这里。
+      document.querySelector("a.brand").href = "/interview-vault/";
+    </script>
+  </body>
+</html>

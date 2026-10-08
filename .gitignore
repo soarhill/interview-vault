@@ -1,0 +1,6 @@
+# 依赖与构建中间产物
+node_modules/
+site/node_modules/
+
+# 构建产物会在发布时随 gh-pages 提交，但本地开发允许随时清掉重建
+# （docs/ 里的 README.md 是仓库文件，Vite emptyOutDir 会清掉它——构建后需恢复）
