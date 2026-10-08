@@ -19,16 +19,18 @@ import { NotFoundPage } from "@/pages/not-found";
 export function App() {
   return (
     <HashRouter>
-      <PageEnter>
-        <ScrollManager>
+      {/* ScrollManager 必须在 PageEnter 外层：PageEnter 以 pathname 为 key 会
+          连带子树重挂载，让滚动管理器的「上次位置」记忆失效。 */}
+      <ScrollManager>
+        <PageEnter>
           <Routes>
             <Route path="/" element={<InterviewListPage />} />
             <Route path="/interview/:id" element={<InterviewDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-        </ScrollManager>
-      </PageEnter>
+        </PageEnter>
+      </ScrollManager>
     </HashRouter>
   );
 }

@@ -8,6 +8,7 @@ import { CopyProvider } from "@/hooks/use-copy";
 import { useAnchor } from "@/hooks/use-anchor";
 import { SiteHeader, SITE_TITLE } from "../shared/brand";
 import { Loading, PageState } from "../shared/page-state";
+import { SiteFooter } from "../shared/site-footer";
 import { BackLink } from "./back-link";
 import { DetailHeader } from "./detail-header";
 import { RoundNav } from "./round-nav";
@@ -108,6 +109,7 @@ export function InterviewDetailPage() {
             <SourceLinks sources={interview.sources} />
           </>
         )}
+        <SiteFooter />
       </main>
     </CopyProvider>
   );

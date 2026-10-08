@@ -92,6 +92,7 @@ mark { background: #fff0b7; color: inherit; border-radius: 3px; padding: 0 1px; 
 .site-footer { color: #66738b; font-size: 12px; text-align: center; padding: 48px 0 20px; }
 .site-footer p { margin: 4px 0; }
 .site-footer a:hover { color: var(--color-primary); }
+.visit-counter strong { color: var(--color-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 @keyframes pulse { 50% { opacity: .5; } }
 .page-enter { animation: page-enter 240ms ease-out; }
 @keyframes page-enter {
