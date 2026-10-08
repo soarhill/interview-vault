@@ -5,13 +5,22 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpenText,
+  Mail,
   MessageSquare,
+  PenLine,
   Quote,
   Database,
 } from "lucide-react";
 import { SiteHeader, REPO_URL } from "../shared/brand";
 import { GithubIcon } from "../shared/github-icon";
+import { CopyButton } from "../detail/copy-button";
+import { CopyProvider } from "@/hooks/use-copy";
 import { useLibrary } from "@/hooks/use-library";
+import {
+  SUBMISSION_EMAIL,
+  SUBMISSION_MAILTO,
+  SUBMISSION_TEMPLATE,
+} from "@/lib/submission";
 import styles from "./about.module.css";
 
 export function AboutPage() {
@@ -24,7 +33,8 @@ export function AboutPage() {
     };
   }, []);
   return (
-    <div className={styles.layout}>
+    <CopyProvider>
+      <div className={styles.layout}>
       <SiteHeader />
       <main className={styles.page}>
         <div className={styles.column}>
@@ -59,16 +69,26 @@ export function AboutPage() {
               </div>
               <div className={styles.feature}>
                 <span className={styles.featureIcon}>
-                  <GithubIcon size={22} />
+                  <PenLine size={24} strokeWidth={1.6} aria-hidden="true" />
                 </span>
                 <div className={styles.featureCopy}>
-                  <h3>这是一个开源项目</h3>
+                  <h3>把你经历过的面试，留下来</h3>
                   <p>
-                    本站是「面个 Offer」的静态阅读版。<strong>投稿与内容治理等完整功能</strong>在完整版中实现，欢迎到仓库了解完整设计。
+                    一面、二面、HR 面，还有那些记得的问题与追问。不用写成一篇完整的文章，<strong>记得多少，就分享多少。</strong>
                   </p>
-                  <a className={styles.textLink} href={REPO_URL} target="_blank" rel="noopener noreferrer">
-                    查看完整版仓库 <ArrowUpRight size={16} aria-hidden="true" />
-                  </a>
+                  <div className={styles.featureActions}>
+                    <CopyButton
+                      text={SUBMISSION_TEMPLATE}
+                      label="复制投稿模板"
+                      accessibleLabel="复制投稿模板"
+                    />
+                    <a className={styles.textLink} href={SUBMISSION_MAILTO}>
+                      直接写邮件 <ArrowUpRight size={16} aria-hidden="true" />
+                    </a>
+                  </div>
+                  <p className={styles.featureMail}>
+                    投稿邮箱：{SUBMISSION_EMAIL}（邮件里粘贴模板填写即可）
+                  </p>
                 </div>
               </div>
             </div>
@@ -90,7 +110,7 @@ export function AboutPage() {
             <div className={styles.dataNote}>
               <p>
                 <Database size={14} aria-hidden="true" />{" "}
-                本站所有面经均整理自牛客（nowcoder.com）等渠道的公开分享，每份面经的详情页都保留了原始来源链接；仅收录问题、追问与面试过程等文本信息，不含任何个人隐私。
+                本站面经来自两个渠道：整理自牛客（nowcoder.com）等公开分享的内容，以及用户通过邮箱投稿的经历（经整理审核后发布）。每份面经的详情页都保留原始来源链接；仅收录问题、追问与面试过程等文本信息，不含任何个人隐私。
                 {data && <>当前数据快照生成于 {data.generatedAt.slice(0, 10)}，共 {data.total} 份面经。</>}
               </p>
             </div>
@@ -101,6 +121,14 @@ export function AboutPage() {
               <h2 id="about-participate" className={styles.sectionTitle}>一起把它做得更好</h2>
             </div>
             <div className={styles.actions}>
+              <a className={styles.actionRow} href={SUBMISSION_MAILTO}>
+                <span className={styles.actionIcon}><Mail size={22} strokeWidth={1.7} aria-hidden="true" /></span>
+                <span className={styles.actionCopy}>
+                  <span className={styles.actionTitle}>投稿面经 <span className={styles.actionDestination}>邮箱投稿</span></span>
+                  <span className={styles.actionDescription}>把你的面试经历发到 {SUBMISSION_EMAIL}，整理审核后会在这里发布。</span>
+                </span>
+                <ArrowUpRight className={styles.actionArrow} size={20} aria-hidden="true" />
+              </a>
               <a className={styles.actionRow} href={REPO_URL} target="_blank" rel="noopener noreferrer">
                 <span className={styles.actionIcon}><GithubIcon size={22} /></span>
                 <span className={styles.actionCopy}>
@@ -126,6 +154,7 @@ export function AboutPage() {
           </footer>
         </div>
       </main>
-    </div>
+      </div>
+    </CopyProvider>
   );
 }

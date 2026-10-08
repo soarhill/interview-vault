@@ -79,6 +79,8 @@ export function SiteFooter({ generatedAt }: { generatedAt?: string }) {
           查看源码 / GitHub
         </a>
         <span aria-hidden="true"> · </span>
+        <Link to="/about">投稿面经</Link>
+        <span aria-hidden="true"> · </span>
         <Link to="/about">关于本项目</Link>
       </p>
     </footer>
