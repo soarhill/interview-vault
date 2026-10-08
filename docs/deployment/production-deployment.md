@@ -25,9 +25,10 @@
 同时非空才启用，部署清单见 [analytics.md](./analytics.md)。
 
 **私有静态资产（赞赏码）**：`frontend/public/support/` 下的两张收款二维码是维护者私有资产，
-不进开源仓库（根 `.gitignore` 忽略）。生产交付方式：部署时从仓库外私有存储把图片复制进该目录，
-在图片就位后执行 `next build`；`next start` 以运行时读取 `public/` 的方式提供静态文件，
-已启动实例也可在不停机的前提下补入图片。缺图时关于页赞赏区自动降级为一行提示，不影响其他功能。
+不进开源仓库、不进容器镜像（构建上下文由 `frontend/.dockerignore` 排除）。
+容器化交付采用**部署时只读挂载**：服务器私有目录（默认 `deploy/private-assets/support/`，
+仓库外）挂载到容器 `/app/public/support`——`next start` 运行时读取 `public/`，
+挂载即时生效、缺图时关于页赞赏区自动降级，不影响其他功能。
 上线检查单（§6）含赞赏码可访问性核对项。
 
 ## 2. prod profile 的行为
@@ -86,3 +87,38 @@
 - 限流（匿名加油）是单实例内存实现：扩展到多实例时需上移到入口（Nginx limit_req 或网关）；
 - Session 没有绝对生命周期上限（仅 7 天空闲过期）；要求强过期时清空 `spring_session` 表强制重登；
 - Maven 侧 CVE 扫描（OWASP dependency-check）尚未纳入 CI。
+
+## 8. 容器化部署（Docker Compose）
+
+部署资产（均在仓库内，密钥除外）：
+
+- `backend/Dockerfile` / `frontend/Dockerfile`：多阶段构建，运行层非 root；
+- `docker-compose.yml`：pg（不映射端口）+ backend（127.0.0.1:8082→8080）+ frontend（127.0.0.1:3000→3000），
+  专用 bridge 网络、资源限额、健康检查、`unless-stopped`；`db-backup` 服务挂在 `backup` profile 手动执行；
+- `deploy/env.production.example`：全部生产变量模板，真实文件 `deploy/env.production` 在仓库外（.gitignore 拦截）。
+
+镜像构建与交付（本地构建，服务器不碰源码）：
+
+```bash
+# 本地构建（换域名/换 NEXT_PUBLIC_* 后必须重新 build——它们是构建期内联变量）
+docker build -t interview-vault-backend:1.0.0 ./backend
+docker build --build-arg NEXT_PUBLIC_API_BASE_URL=https://<域名> -t interview-vault-frontend:1.0.0 ./frontend
+
+# SSH 直传（服务器出站无法访问 Docker Hub；GHCR 慢且非必要）
+docker save interview-vault-backend:1.0.0 | gzip | ssh <server> 'gunzip | docker load'
+docker save interview-vault-frontend:1.0.0 | gzip | ssh <server> 'gunzip | docker load'
+```
+
+服务器启动与运维：
+
+```bash
+docker compose --env-file deploy/env.production up -d      # 启动（空库由 Flyway V1 自举）
+docker compose --env-file deploy/env.production run --rm db-backup   # 手动备份到 ./backups/
+docker compose --env-file deploy/env.production ps         # 健康状态
+```
+
+回滚：
+
+- 应用回滚：`IMAGE_TAG` 改回上一不可变标签后 `up -d`（旧镜像保留在服务器）；
+- 数据回滚：`pg_restore` 上一份 `./backups/*.dump`（见 §5 私有链路；Flyway V1 单基线无 down 迁移）；
+- 整栈下线：`docker compose down`——**禁止 `down -v`**（会删除业务数据卷）。

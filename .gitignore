@@ -20,6 +20,11 @@ desktop.ini
 # （见该目录 README 与 docs/deployment/production-deployment.md）
 frontend/public/support/*.jpg
 
+# 生产部署私有文件：真实环境变量、私有资产、数据库备份（见 deploy/env.production.example）
+deploy/env.production
+deploy/private-assets/
+backups/
+
 # 依赖与构建产物（编码阶段使用）
 node_modules/
 .next/

@@ -66,6 +66,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // OAuth 流程端点
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        // 探活：无状态、零信息量，容器/反代/检查单共用
+                        .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
                         // 公开 GET 读接口（公开 API 均为 GET）
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/interviews/**", "/api/v1/interview-filters",

@@ -1,0 +1,120 @@
+# Interview Vault 生产编排（详见 docs/deployment/production-deployment.md）
+#
+# 用法（服务器）：
+#   docker compose --env-file deploy/env.production up -d
+# 用法（备份）：
+#   docker compose --env-file deploy/env.production run --rm db-backup
+#
+# 架构要点：
+# - PostgreSQL 只在本网络内可达，不映射任何宿主端口
+# - backend/frontend 只绑定 127.0.0.1，公网流量一律走宿主 Nginx
+# - 赞赏码等私有资产通过只读挂载注入，不进镜像不进仓库
+# - 生产数据库由 Flyway V1 自举为空库；真实数据按 Runbook §5 私有链路另行恢复
+
+name: interview-vault
+
+services:
+  pg:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_DB: interviewvault
+      POSTGRES_USER: ${IV_DB_USER}
+      POSTGRES_PASSWORD: ${IV_DB_PASSWORD}
+      # 限制连接数，避免小内存机器被突发连接打爆
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command: ["postgres", "-c", "max_connections=60", "-c", "shared_buffers=256MB"]
+    volumes:
+      # PG18 镜像约定：挂 /var/lib/postgresql（数据在其子目录），data 子目录直挂会被拒绝
+      - iv-pg-data:/var/lib/postgresql
+    networks:
+      - iv-net
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d interviewvault"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+
+  backend:
+    image: interview-vault-backend:${IMAGE_TAG:-1.0.0}
+    restart: unless-stopped
+    # 真实运行环境变量（密钥）来自仓库外私有文件；仓库内只提供 example
+    env_file:
+      - ${IV_ENV_FILE:-./deploy/env.production}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Shanghai
+    ports:
+      # 只绑宿主回环：8080 已被服务器既有业务占用，宿主侧统一用 8082
+      - "127.0.0.1:${BACKEND_HOST_PORT:-8082}:8080"
+    depends_on:
+      pg:
+        condition: service_healthy
+    networks:
+      - iv-net
+    deploy:
+      resources:
+        limits:
+          memory: 1280m
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    image: interview-vault-frontend:${IMAGE_TAG:-1.0.0}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-3000}:3000"
+    volumes:
+      # 私有赞赏码：部署机私有目录只读挂载到容器 public/support
+      # （next start 运行时读取 public/，缺图时关于页自动降级）
+      - ${IV_SUPPORT_DIR:-./deploy/private-assets/support}:/app/public/support:ro
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - iv-net
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  # 手动备份（不随主栈启动）：docker compose ... run --rm db-backup
+  db-backup:
+    profiles: ["backup"]
+    image: postgres:18
+    env_file:
+      - ${IV_ENV_FILE:-./deploy/env.production}
+    environment:
+      TZ: Asia/Shanghai
+    entrypoint:
+      ["sh", "-c", "pg_dump -h pg -U $$IV_DB_USER -d interviewvault -Fc -f /backups/interviewvault-$$(date +%Y%m%d-%H%M%S).dump && ls -lh /backups/"]
+    volumes:
+      - ./backups:/backups
+    networks:
+      - iv-net
+    depends_on:
+      pg:
+        condition: service_healthy
+
+networks:
+  iv-net:
+    driver: bridge
+
+volumes:
+  iv-pg-data:

@@ -1,0 +1,17 @@
+# 个人收款码是私有资产，绝不进入镜像（部署时只读挂载）
+public/support/*.jpg
+
+# 依赖与构建产物（镜像内重新安装/构建）
+node_modules/
+.next/
+output/
+tsconfig.tsbuildinfo
+
+# 环境文件与本地工具状态
+.env
+.env.*
+.playwright-cli/
+
+# 测试与文档不参与生产镜像
+tests/
+*.md
