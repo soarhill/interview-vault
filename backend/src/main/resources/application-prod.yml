@@ -1,0 +1,23 @@
+# 生产 profile（SPRING_PROFILES_ACTIVE=prod）：
+# 只放与默认开发配置不同的部分；开发默认值（dev 数据库密码 / placeholder OAuth / localhost）
+# 由 ProductionConfigGuard 在启动时拒绝——生产启动必须显式注入全部环境变量。
+spring:
+  session:
+    timeout: 7d
+server:
+  # TLS 终止在反向代理（Nginx），信任其 X-Forwarded-For / X-Forwarded-Proto，
+  # 使 OAuth redirect_uri 与客户端 IP 取值正确；后端自身只监听私网 HTTP
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        # Session Cookie 只经 HTTPS 传输；SameSite=Lax 阻止跨站表单 POST 携带
+        secure: true
+        same-site: lax
+        http-only: true
+springdoc:
+  # 生产不暴露交互式 API 文档
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

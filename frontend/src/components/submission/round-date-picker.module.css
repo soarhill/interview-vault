@@ -1,0 +1,82 @@
+.field { position: relative; }
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding-right: 42px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trigger > span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.trigger > svg { color: var(--color-muted); flex-shrink: 0; }
+.trigger[data-empty="true"] > span { color: var(--color-muted); }
+.trigger[data-state="open"] { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-surface-hover); }
+
+.clear {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-muted);
+  background: transparent;
+}
+
+.clear:hover { color: var(--color-primary); background: var(--color-primary-surface); }
+
+.popover {
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 14px 40px #14213b18, 0 2px 8px #14213b08;
+}
+
+.calendar {
+  --cell-size: 40px;
+  width: calc(var(--cell-size) * 7 + 24px);
+  padding: 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.calendar :global(.rdp-day_button) { font-size: 14px; }
+.calendar :global(.rdp-outside) { color: var(--color-muted); opacity: 1; }
+.calendar :global(.rdp-weekday) { padding-bottom: 2px; color: var(--color-muted); font-size: 12px; }
+.calendar :global(.rdp-dropdown_root) { border: 0; box-shadow: none; }
+.calendar :global(.rdp-dropdown_root):hover { background: var(--color-canvas); }
+.calendar :global(.rdp-week) { margin-top: 4px; }
+.calendar :global(button[data-selected-single="true"]) { background: var(--color-primary); color: var(--color-primary-foreground); font-weight: 600; }
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.footer button { min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--color-primary); font-size: 12px; }
+.footer button:disabled { color: var(--color-muted); }
+
+@media (max-width: 359px) {
+  .calendar { --cell-size: 36px; }
+}

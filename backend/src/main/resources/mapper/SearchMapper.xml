@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.interviewvault.search.repository.SearchMapper">
+
+    <!-- 公开搜索只返回 PUBLISHED。 -->
+    <sql id="published">i.status = 'PUBLISHED'</sql>
+
+    <!-- 单个关键词的命中 OR 表达式：问题 / 算法字段 / 追问 / 公司 / 岗位(含分类) / 标签。
+         #{kw} 为已转义并加 % 通配的 LIKE 参数，ESCAPE '\' 使 % _ 按普通文本处理。 -->
+    <sql id="keywordHit">
+        EXISTS (SELECT 1 FROM question q JOIN interview_round r ON r.id = q.round_id
+        WHERE r.interview_id = i.id AND (
+        lower(q.content) LIKE #{kw} ESCAPE '\'
+        OR lower(coalesce(q.algorithm_title, '')) LIKE #{kw} ESCAPE '\'
+        OR lower(coalesce(q.algorithm_description, '')) LIKE #{kw} ESCAPE '\'
+        OR lower(coalesce(q.algorithm_requirements, '')) LIKE #{kw} ESCAPE '\'
+        OR lower(coalesce(q.section_label, '')) LIKE #{kw} ESCAPE '\'))
+        OR EXISTS (SELECT 1 FROM follow_up f
+        JOIN question q ON q.id = f.question_id
+        JOIN interview_round r ON r.id = q.round_id
+        WHERE r.interview_id = i.id AND lower(f.content) LIKE #{kw} ESCAPE '\')
+        OR EXISTS (SELECT 1 FROM company c WHERE c.id = i.company_id AND lower(c.name) LIKE #{kw} ESCAPE '\')
+        OR EXISTS (SELECT 1 FROM position p JOIN position_category pc ON pc.id = p.category_id
+                   WHERE p.id = i.position_id AND (
+        lower(p.name) LIKE #{kw} ESCAPE '\' OR lower(pc.name) LIKE #{kw} ESCAPE '\'))
+        OR EXISTS (SELECT 1 FROM interview_tag it JOIN tag t ON t.id = it.tag_id
+        WHERE it.interview_id = i.id AND lower(t.name) LIKE #{kw} ESCAPE '\')
+    </sql>
+
+    <!-- 三个筛选维度（null = 不筛选）。岗位分类经 position 关联判断（历史「岗位未说明」记录不会被分类筛中）。 -->
+    <sql id="conditions">
+        AND <include refid="published"/>
+        <if test="filter.companyId != null">AND i.company_id = #{filter.companyId}</if>
+        <if test="filter.categoryId != null">AND EXISTS (SELECT 1 FROM position p
+            WHERE p.id = i.position_id AND p.category_id = #{filter.categoryId})</if>
+        <if test="filter.type != null">AND i.recruit_type = #{filter.type}</if>
+        <if test="patterns != null and patterns.size() > 0">
+            <foreach collection="patterns" item="kw">
+                AND (<include refid="keywordHit"/>)
+            </foreach>
+        </if>
+    </sql>
+
+    <sql id="whereClause">
+        WHERE 1=1
+        <include refid="conditions"/>
+    </sql>
+
+    <!-- 最新优先：首轮已确认日期（LATERAL 语义的标量子查询取最早一条），无日期置后，id 兜底稳定 -->
+    <sql id="orderBy">
+        ORDER BY (SELECT r.interview_date FROM interview_round r
+        WHERE r.interview_id = i.id AND r.interview_date IS NOT NULL
+        ORDER BY r.interview_date, r.interview_date_precision
+        LIMIT 1) DESC NULLS LAST, i.id ASC
+    </sql>
+
+    <!-- ==================== 列表与总数 ==================== -->
+
+    <select id="findInterviewIds" resultType="long">
+        SELECT i.id FROM interview_record i
+        <include refid="whereClause"/>
+        <include refid="orderBy"/>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countInterviews" resultType="long">
+        SELECT count(*) FROM interview_record i
+        <include refid="whereClause"/>
+    </select>
+
+    <!-- ==================== 联动计数（每个维度排除自身条件，由调用方构造 filter） ==================== -->
+
+    <resultMap id="companyCountMap" type="com.interviewvault.search.repository.SearchMapper$CompanyCount">
+        <constructor>
+            <arg column="id" javaType="java.lang.Long"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="cnt" javaType="java.lang.Long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="countByCompany" resultMap="companyCountMap">
+        SELECT c.id, c.name, count(i.id) AS cnt
+        FROM company c
+        JOIN interview_record i ON i.company_id = c.id
+        WHERE 1=1
+        <include refid="conditions"/>
+        GROUP BY c.id, c.name
+        ORDER BY count(i.id) DESC, c.id ASC
+    </select>
+
+    <resultMap id="categoryCountMap" type="com.interviewvault.search.repository.SearchMapper$CategoryCount">
+        <constructor>
+            <arg column="categoryId" javaType="java.lang.Long"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="cnt" javaType="java.lang.Long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="countByCategory" resultMap="categoryCountMap">
+        SELECT p.category_id AS categoryId, pc.name AS name, count(*) AS cnt
+        FROM interview_record i
+        JOIN position p ON p.id = i.position_id
+        JOIN position_category pc ON pc.id = p.category_id
+        WHERE 1=1
+        <include refid="conditions"/>
+        GROUP BY p.category_id, pc.name, pc.sort_order
+        ORDER BY pc.sort_order
+    </select>
+
+    <resultMap id="recruitmentCountMap" type="com.interviewvault.search.repository.SearchMapper$RecruitmentCount">
+        <constructor>
+            <arg column="recruit_type" javaType="java.lang.String"/>
+            <arg column="cnt" javaType="java.lang.Long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="countByRecruitType" resultMap="recruitmentCountMap">
+        SELECT i.recruit_type AS recruit_type, count(*) AS cnt
+        FROM interview_record i
+        WHERE 1=1
+        <include refid="conditions"/>
+        GROUP BY i.recruit_type
+    </select>
+
+    <!-- ==================== 卡片与片段数据 ==================== -->
+
+    <resultMap id="cardRowMap" type="com.interviewvault.search.repository.SearchMapper$CardRow">
+        <constructor>
+            <arg column="id" javaType="java.lang.Long"/>
+            <arg column="c_id" javaType="java.lang.Long"/>
+            <arg column="c_name" javaType="java.lang.String"/>
+            <arg column="department" javaType="java.lang.String"/>
+            <arg column="p_id" javaType="java.lang.Long"/>
+            <arg column="p_name" javaType="java.lang.String"/>
+            <arg column="p_category" javaType="java.lang.String"/>
+            <arg column="recruit_type" javaType="java.lang.String"/>
+            <arg column="first_date" javaType="java.time.LocalDate"/>
+            <arg column="first_precision" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findCards" resultMap="cardRowMap">
+        SELECT i.id, i.department, i.recruit_type,
+        c.id AS c_id, c.name AS c_name,
+        p.id AS p_id, p.name AS p_name, pc.name AS p_category,
+        fd.interview_date AS first_date, fd.interview_date_precision AS first_precision
+        FROM interview_record i
+        JOIN company c ON c.id = i.company_id
+        LEFT JOIN position p ON p.id = i.position_id
+        LEFT JOIN position_category pc ON pc.id = p.category_id
+        LEFT JOIN LATERAL (
+        SELECT r.interview_date, r.interview_date_precision
+        FROM interview_round r
+        WHERE r.interview_id = i.id AND r.interview_date IS NOT NULL
+        ORDER BY r.interview_date, r.interview_date_precision
+        LIMIT 1
+        ) fd ON true
+        WHERE i.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        AND <include refid="published"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <resultMap id="roundDisplayMap" type="com.interviewvault.search.repository.SearchMapper$RoundDisplayRow">
+        <constructor>
+            <arg column="interview_id" javaType="java.lang.Long"/>
+            <arg column="round_type" javaType="java.lang.String"/>
+            <arg column="round_no" javaType="java.lang.Integer"/>
+            <arg column="remark" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findRoundDisplays" resultMap="roundDisplayMap">
+        SELECT interview_id, round_type, round_no, remark
+        FROM interview_round
+        WHERE interview_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY interview_id, sort_order
+    </select>
+
+    <resultMap id="tagRowMap" type="com.interviewvault.search.repository.SearchMapper$TagRow">
+        <constructor>
+            <arg column="interview_id" javaType="java.lang.Long"/>
+            <arg column="name" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findTags" resultMap="tagRowMap">
+        SELECT it.interview_id, t.name
+        FROM interview_tag it
+        JOIN tag t ON t.id = it.tag_id
+        WHERE it.interview_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY it.interview_id, it.tag_id
+    </select>
+
+    <resultMap id="questionTextMap" type="com.interviewvault.search.repository.SearchMapper$QuestionText">
+        <constructor>
+            <arg column="iid" javaType="java.lang.Long"/>
+            <arg column="qid" javaType="java.lang.Long"/>
+            <arg column="round_type" javaType="java.lang.String"/>
+            <arg column="round_no" javaType="java.lang.Integer"/>
+            <arg column="round_remark" javaType="java.lang.String"/>
+            <arg column="content" javaType="java.lang.String"/>
+            <arg column="algo_desc" javaType="java.lang.String"/>
+            <arg column="algo_req" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findQuestionTexts" resultMap="questionTextMap">
+        SELECT r.interview_id AS iid, q.id AS qid,
+        r.round_type AS round_type, r.round_no AS round_no, r.remark AS round_remark,
+        q.content AS content,
+        q.algorithm_description AS algo_desc, q.algorithm_requirements AS algo_req
+        FROM question q
+        JOIN interview_round r ON r.id = q.round_id
+        WHERE r.interview_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY r.interview_id, r.sort_order, q.sort_order
+    </select>
+
+    <resultMap id="followUpTextMap" type="com.interviewvault.search.repository.SearchMapper$FollowUpText">
+        <constructor>
+            <arg column="qid" javaType="java.lang.Long"/>
+            <arg column="fid" javaType="java.lang.Long"/>
+            <arg column="content" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findFollowUpTexts" resultMap="followUpTextMap">
+        SELECT f.question_id AS qid, f.id AS fid, f.content AS content
+        FROM follow_up f
+        JOIN question q ON q.id = f.question_id
+        JOIN interview_round r ON r.id = q.round_id
+        WHERE r.interview_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY f.question_id, f.sort_order
+    </select>
+
+</mapper>

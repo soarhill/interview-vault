@@ -1,0 +1,151 @@
+{
+  "id": 123,
+  "company": {
+    "id": 1,
+    "slug": "bytedance",
+    "name": "字节跳动"
+  },
+  "department": "抖音电商",
+  "roleOriginal": "后端研发工程师",
+  "roleInferred": null,
+  "roleCategory": {
+    "code": "backend",
+    "name": "后端开发"
+  },
+  "recruitmentType": "CAMPUS",
+  "interviewDate": "2026-09-23",
+  "datePrecision": "DAY",
+  "interviewResult": "一面通过，二面未通过",
+  "note": "多个来源之间流程关系未确认",
+  "tags": [
+    "Redis",
+    "MySQL"
+  ],
+  "sources": [
+    {
+      "id": 10,
+      "url": "https://www.nowcoder.com/..."
+    },
+    {
+      "id": 11,
+      "url": "https://www.nowcoder.com/..."
+    }
+  ],
+  "rounds": [
+    {
+      "id": 55,
+      "seq": 1,
+      "name": "一面",
+      "note": null,
+      "sourceId": 10,
+      "questions": [
+        {
+          "id": 4517,
+          "seq": 1,
+          "sectionLabel": "Redis",
+          "content": "Redis 分布式锁怎么实现？",
+          "type": "NORMAL",
+          "contextNote": null,
+          "algorithm": null,
+          "followUps": [
+            {
+              "id": 54171,
+              "seq": 1,
+              "content": "为什么使用 SETNX？"
+            },
+            {
+              "id": 54172,
+              "seq": 2,
+              "content": "锁过期但业务没执行完怎么办？"
+            },
+            {
+              "id": 54173,
+              "seq": 3,
+              "content": "为什么使用 Lua？"
+            }
+          ]
+        },
+        {
+          "id": 4518,
+          "seq": 2,
+          "sectionLabel": "算法",
+          "content": "二叉树深度",
+          "type": "ALGORITHM",
+          "contextNote": null,
+          "algorithm": {
+            "title": "二叉树深度",
+            "description": "求二叉树的最大深度",
+            "requirements": "手撕；说明时间复杂度",
+            "leetcodeNumber": 104,
+            "leetcodeUrl": "https://leetcode.cn/problems/maximum-depth-of-binary-tree/"
+          },
+          "followUps": []
+        },
+        {
+          "id": 4519,
+          "seq": 3,
+          "sectionLabel": "Agent",
+          "content": "Agent 应用的开发流程",
+          "type": "NORMAL",
+          "contextNote": null,
+          "algorithm": null,
+          "followUps": []
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "seq": 2,
+      "name": "二面",
+      "note": "流程关系未确认",
+      "sourceId": 11,
+      "questions": [
+        {
+          "id": 4523,
+          "seq": 1,
+          "sectionLabel": "项目与实习",
+          "content": "介绍责任链模式在项目中的使用场景",
+          "type": "NORMAL",
+          "contextNote": null,
+          "algorithm": null,
+          "followUps": [
+            {
+              "id": 54231,
+              "seq": 1,
+              "content": "为什么使用 Redis Pipeline？"
+            },
+            {
+              "id": 54232,
+              "seq": 2,
+              "content": "如何管理 Memory？"
+            }
+          ]
+        },
+        {
+          "id": 4524,
+          "seq": 2,
+          "sectionLabel": "工程编码",
+          "content": "实现一个缓存",
+          "type": "ALGORITHM",
+          "contextNote": null,
+          "algorithm": {
+            "title": "实现一个缓存",
+            "description": "保留原记录描述，未给具体问法",
+            "requirements": null,
+            "leetcodeNumber": null,
+            "leetcodeUrl": null
+          },
+          "followUps": []
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "seq": 3,
+      "name": "HR 面",
+      "note": "该轮存在，但原记录未提供具体问题",
+      "sourceId": 11,
+      "questions": []
+    }
+  ]
+}

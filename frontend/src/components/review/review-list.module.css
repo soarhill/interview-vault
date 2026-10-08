@@ -1,0 +1,91 @@
+.page { min-height: 100dvh; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.toolbar p { margin: 0; color: var(--color-muted); font-size: 13px; }
+.toolbar strong { color: var(--color-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.refresh {
+  min-height: 36px;
+  padding: 0 10px;
+  color: var(--color-muted);
+  font-size: 12px;
+  gap: 6px;
+  box-shadow: none;
+}
+.refresh:hover { color: var(--color-primary); background: var(--color-primary-surface); }
+.refresh svg { width: 14px; height: 14px; }
+.refresh[aria-busy="true"] svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.list { display: grid; gap: 10px; }
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-content: center;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 116px;
+  padding: 16px 20px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 4px #14213b03;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast), background-color var(--motion-fast);
+}
+.item:hover {
+  border-color: #b9cdf0;
+  background: #fcfdff;
+  box-shadow: 0 3px 12px #14213b08;
+}
+.item:has(.cardLink:focus-visible) { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.logo { grid-column: 1; grid-row: 1 / span 2; align-self: start; margin-top: 1px; }
+.logo :global(.company-logo) { border-radius: 7px; }
+.logo :global(.company-logo-initial) { font-size: 15px; }
+.title { grid-column: 2; grid-row: 1; min-width: 0; margin: 0; font-size: 16px; font-weight: 600; line-height: 22px; overflow-wrap: anywhere; }
+.cardLink { color: var(--color-ink); outline: none; }
+.cardLink::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 10px; }
+.item :is(button, a:not(.cardLink)) { position: relative; z-index: 2; }
+.badges { grid-column: 3; grid-row: 1; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+.status, .pending { min-height: 26px; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+.status { background: var(--color-soft-blue); color: var(--color-primary); }
+.pending { background: var(--color-warning-surface); color: var(--color-warning); }
+.author { grid-column: 2; grid-row: 2; min-width: 0; margin: 0; color: #56657e; font-size: 13px; line-height: 20px; overflow-wrap: anywhere; }
+.metadata { grid-column: 2; grid-row: 3; min-width: 0; margin: 0; color: var(--color-muted); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.entry { grid-column: 3; grid-row: 2 / span 2; align-self: center; justify-self: end; display: inline-flex; align-items: center; gap: 6px; color: var(--color-primary); font-size: 13px; font-weight: 500; line-height: 18px; white-space: nowrap; }
+.entry svg { width: 14px; height: 14px; }
+
+@media (max-width: 640px) {
+  .item { grid-template-columns: 32px minmax(0, 1fr); padding: 16px; gap: 6px 10px; }
+  .badges { grid-column: 2; grid-row: 2; justify-content: flex-start; }
+  .author { grid-row: 3; }
+  .metadata { grid-row: 4; }
+  .entry { grid-column: 2; grid-row: 5; justify-self: start; margin-top: 2px; }
+}
+
+@media (max-width: 767px) {
+  .page :global(.site-header .site-header-inner) {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+  .page :global(.site-header .brand) { position: absolute; top: 14px; left: 18px; }
+  .page :global(.site-navigation) { width: 100%; min-height: 44px; justify-content: space-between; gap: 10px; }
+  .page :global(.site-navigation > a:not(.login-button)) { flex-shrink: 0; white-space: nowrap; font-size: 12px; }
+  .page :global(.site-navigation > .about-trigger) { padding: 0; }
+  .page :global(.site-navigation > .user-menu),
+  .page :global(.site-navigation > .login-button),
+  .page :global(.site-navigation > .auth-loading) { position: absolute; right: 18px; top: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .refresh[aria-busy="true"] svg { animation: none; }
+}

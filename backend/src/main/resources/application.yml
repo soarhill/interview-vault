@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: interview-vault-backend
+  datasource:
+    url: ${IV_DB_URL:jdbc:postgresql://localhost:5433/interviewvault}
+    username: ${IV_DB_USER:postgres}
+    password: ${IV_DB_PASSWORD:dev}
+  flyway:
+    enabled: true
+  session:
+    # 登录会话存 PG（spring_session 表）：进程重启不掉登录态；7 天不活动过期
+    store-type: jdbc
+    timeout: 7d
+    jdbc:
+      schema: classpath:org/springframework/session/jdbc/schema-postgresql.sql
+      initialize-schema: always
+      cleanup-cron: 0 0 * * * *
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            # 联调登录前注册 GitHub OAuth App 并通过环境变量注入：
+            # IV_GITHUB_CLIENT_ID / IV_GITHUB_CLIENT_SECRET
+            client-id: ${IV_GITHUB_CLIENT_ID:placeholder}
+            client-secret: ${IV_GITHUB_CLIENT_SECRET:placeholder}
+            redirect-uri: "{baseUrl}/api/v1/auth/github/callback"
+            scope: read:user
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  port: ${IV_SERVER_PORT:8080}
+
+iv:
+  cors:
+    origins: ${IV_CORS_ORIGINS:http://localhost:3000}
+  auth:
+    # 首个管理员白名单（逗号分隔的 GitHub 数字 ID）；命中即 ADMIN，未命中 USER
+    admin-github-ids: ${IV_ADMIN_GITHUB_IDS:}
+    # OAuth 登录成功后重定向到前端
+    login-success-redirect: ${IV_LOGIN_SUCCESS_REDIRECT:http://localhost:3000}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
