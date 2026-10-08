@@ -27,6 +27,12 @@ export function QuestionCard({
 }) {
   const follows = question.followUps;
   const link = externalHref(question.referenceUrl ?? question.leetcodeUrl);
+  // 单按钮：有追问给「复制整组」（问题 + 全部追问），没有就只复制问题本身
+  const copyText = follows.length ? chainText(question) : questionText(question);
+  const copyLabel = follows.length ? "复制整组" : "复制";
+  const copyAria = follows.length
+    ? `复制 Q${number} 整组`
+    : `复制 Q${number}`;
   return (
     <Card
       role="article"
@@ -42,18 +48,7 @@ export function QuestionCard({
               <Highlight text={question.content} q={q} />
             </h4>
             <div className="copy-actions">
-              <CopyButton
-                text={questionText(question)}
-                accessibleLabel={`复制 Q${number}`}
-              />
-              {follows.length > 0 && (
-                <CopyButton
-                  text={chainText(question)}
-                  label="复制整组"
-                  accessibleLabel={`复制 Q${number} 整组`}
-                  secondary
-                />
-              )}
+              <CopyButton text={copyText} label={copyLabel} accessibleLabel={copyAria} />
             </div>
           </div>
           {link && (
